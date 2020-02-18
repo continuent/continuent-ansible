@@ -9,43 +9,51 @@
     src: ../templates/hosts.j2
     dest: /etc/hosts
 
-- name: Install EPEL repository
-  yum:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
-    state: present
+- name: Register cloud guest
+  shell: registercloudguest --force-new
+  become: yes
 
-- name: Upgrade all packages
-  yum:
-    name: "*"
-    state: latest
+- name: Update all packages
+  shell: zypper -n --no-gpg-checks update
+  become: yes
 
 - name: Install required packages
-  yum:
-    name: "{{ packages }}"
-    state: present
-  vars:
-    packages:
-      - java-1.8.0-openjdk
+  shell: "zypper -n --no-gpg-checks install {{ item }}"
+  become: yes
+  with_items:
+      - gcc
+      - java-1_8_0-openjdk
       - perl
       - rsync
       - ruby
-      - rubygem-io-console
-      - rubygem-net-ssh
-      - rubygem-net-scp
+      - ruby-devel
       - tar
       - zip
+      - make
+
+- name: Install Ruby gems
+  shell: "gem install {{ item }}"
+  become: yes
+  with_items:
+    - io-console
+    - net-ssh
+    - net-scp
 
 - name: Create mysql group
   group:
     name: mysql
     state: present
 
+- name: Create tungsten group
+  group:
+    name: tungsten
+    state: present
+
 - name: Create the tungsten user
   user:
     name: tungsten
-    shell: /bin/bash
     comment: Tungsten User
-    groups: mysql
+    groups: mysql,tungsten
 
 - name: Add tungsten user to sudoers file
   lineinfile:
@@ -104,28 +112,20 @@
 # DATABASE
 
 - name: Install MySQL repository
-  yum:
-    name: "https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm"
-    state: present
+  shell: "{{ item }}"
+  become: yes
+  with_items:
+    - "cd /etc/zypp/repos.d/ && sudo wget https://download.opensuse.org/repositories/devel:/gcc/SLE-12/devel:gcc.repo"
+    - "rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-sl15-3.noarch.rpm"
+    - "rpm --import /etc/RPM-GPG-KEY-mysql"
 
-- name: Disable MySQL 8.0 repository
-  shell: yum-config-manager --disable mysql80-community
-
-- name: Enable MySQL 5.7 repository
-  shell: yum-config-manager --enable mysql57-community
-
-- name: Install MySQL packages
-  yum:
-    name: "{{ packages }}"
-    state: present
-  vars:
-    packages:
-      - mysql-community-server
-      - mysql-community-client
+- name: Install MySQL server
+  shell: zypper -n --no-gpg-checks install mysql-community-server
+  become: yes
 
 - name: Enable the MySQL service
   service:
-    name: mysqld
+    name: mysql
     state: started
     enabled: true
 
@@ -198,7 +198,7 @@
 
 - name: Restart the MySQL service
   service:
-    name: mysqld
+    name: mysql
     state: restarted
 
 # INSTALL TUNGSTEN

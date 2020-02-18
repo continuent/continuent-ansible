@@ -9,31 +9,40 @@
     src: ../templates/hosts.j2
     dest: /etc/hosts
 
-- name: Install EPEL repository
-  yum:
-    name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+- name: Add us apt debian repo
+  lineinfile:
+    dest: /etc/apt/sources.list
     state: present
+    line: 'deb http://ftp.us.debian.org/debian sid main'
 
-- name: Upgrade all packages
-  yum:
-    name: "*"
-    state: latest
+- name: Update all packages
+  shell: apt update
+  become: yes
 
 - name: Install required packages
-  yum:
+  apt:
     name: "{{ packages }}"
     state: present
   vars:
     packages:
-      - java-1.8.0-openjdk
+      - build-essential
+      - locales-all
+      - openjdk-8-jdk
       - perl
       - rsync
       - ruby
-      - rubygem-io-console
-      - rubygem-net-ssh
-      - rubygem-net-scp
+      - ruby-dev
+      - rubygems
       - tar
       - zip
+
+- name: Install Ruby gems
+  shell: "gem install {{ item }}"
+  become: yes
+  with_items:
+    - io-console
+    - net-ssh
+    - net-scp
 
 - name: Create mysql group
   group:
@@ -103,40 +112,21 @@
 
 # DATABASE
 
-- name: Install MySQL repository
-  yum:
-    name: "https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm"
-    state: present
-
-- name: Disable MySQL 8.0 repository
-  shell: yum-config-manager --disable mysql80-community
-
-- name: Enable MySQL 5.7 repository
-  shell: yum-config-manager --enable mysql57-community
-
 - name: Install MySQL packages
-  yum:
+  apt:
     name: "{{ packages }}"
     state: present
   vars:
     packages:
-      - mysql-community-server
-      - mysql-community-client
+      - mysql-common
+      - mysql-server
+      - mysql-client
 
 - name: Enable the MySQL service
   service:
-    name: mysqld
+    name: mysql
     state: started
     enabled: true
-
-- name: Acquire temporary root password
-  shell: 'awk -F'': '' ''$0 ~ "temporary password"{print $2}'' /var/log/mysqld.log'
-  register: mysql_root_password_temp
-
-- name: Set new root password from default temporary password
-  shell: 'mysql -e "SET PASSWORD = ''{{ root_mysql_passwd }}'';" --connect-expired-password -uroot -p''{{ mysql_root_password_temp.stdout }}'' && touch /root/.my.password.changed'
-  args:
-    creates: /root/.my.password.changed
 
 - name: Ensure root can login into MySQL localhost (without password)
   shell: 'mysql -e "CREATE USER ''root''@''{{ item }}'';"
@@ -198,7 +188,7 @@
 
 - name: Restart the MySQL service
   service:
-    name: mysqld
+    name: mysql
     state: restarted
 
 # INSTALL TUNGSTEN
