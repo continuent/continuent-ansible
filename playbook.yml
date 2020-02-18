@@ -1,0 +1,11 @@
+---
+
+- name: Configure remote machines
+  hosts: all
+  remote_user: root
+  become: yes
+  gather_facts: yes
+  vars_files:
+    - ./vars/tungsten_vars.yml
+  roles:
+    - centos7

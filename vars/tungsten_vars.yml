@@ -1,0 +1,5 @@
+---
+
+tungsten_mysql_passwd: password
+root_mysql_passwd: root_secret
+app_mysql_passwd: secret
