@@ -1,0 +1,16 @@
+---
+- name: Copy tungsten.ini file
+  copy:
+    src: ../files/tungsten.ini
+    dest: /etc/tungsten
+    owner: tungsten
+    group: tungsten
+    mode: 0770
+
+- name: Unarchive Tungsten Clustering software
+  unarchive:
+    src: "../../../{{ ansible_tungsten_version }}.tar.gz"
+    dest: /opt/continuent/software
+
+- name: Install Tungsten Clustering
+  shell: "/opt/continuent/software/{{ ansible_tungsten_version }}/tools/tpm install"

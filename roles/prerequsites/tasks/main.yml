@@ -1,0 +1,24 @@
+---
+- name: Set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Generate /etc/hosts file
+  template:
+    src: ../templates/hosts.j2
+    dest: /etc/hosts
+
+- name: Include tasks for packages installation on specific distribution
+  include_tasks: "packages/{{ ansible_linux_distribution|lower }}.yml"
+
+- name: Include common tasks for configuration
+  include_tasks: "common.yml"
+
+- name: Include tasks for MySQL server installation on specific distributions
+  include_tasks: "mysql/{{ ansible_linux_distribution|lower }}.yml"
+
+- name: Include common tasks for MySQL server configuration
+  include_tasks: "mysql/common.yml"
+
+- name: Include tasks for Tungsten product preparation
+  include_tasks: "tungsten.yml"

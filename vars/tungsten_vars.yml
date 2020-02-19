@@ -1,5 +1,8 @@
 ---
+ansible_user: root
+ansible_linux_distribution: centos
+ansible_tungsten_version: tungsten-clustering-6.1.2-42
 
-tungsten_mysql_passwd: password
-root_mysql_passwd: root_secret
-app_mysql_passwd: secret
+passwd_mysql_tungsten: password
+passwd_mysql_root: Secret-4-root
+passwd_mysql_app_user: secret

@@ -1,0 +1,49 @@
+---
+- name: Ensure root can login into MySQL localhost
+  shell: "mysql -e \"CREATE USER 'root'@'{{ item }}';\" -uroot -p'{{ passwd_mysql_root }}'"
+  with_items:
+    - ::1
+    - 127.0.0.1
+    - localhost
+  ignore_errors: yes
+
+- name: Create the MySQL tungsten user
+  shell: "mysql -e \"CREATE USER 'tungsten'@'{{ item }}' IDENTIFIED BY '{{ passwd_mysql_tungsten }}'; GRANT ALL PRIVILEGES ON *.* TO 'tungsten'@'{{ item }}' WITH GRANT OPTION;\" -uroot -p'{{ passwd_mysql_root }}'"
+  with_items:
+    - ::1
+    - 127.0.0.1
+    - localhost
+    - "%"
+
+- name: Create the MySQL app_user
+  shell: "mysql -e \"CREATE USER 'app_user'@'%' IDENTIFIED BY '{{ passwd_mysql_app_user }}'; GRANT ALL PRIVILEGES ON *.* TO 'app_user'@'%';\" -uroot -p'{{ passwd_mysql_root }}'"
+
+- name: Revoke the SUPER privileges from the MySQL app_user
+  command: "mysql -NBe \"REVOKE SUPER ON *.* FROM app_user@'%'\" -uroot -p'{{ passwd_mysql_root }}'"
+
+- name: Adding user mysql to group tungsten
+  user:
+    name: mysql
+    groups: tungsten
+    append: yes
+
+- name: Copy root .my.cnf file
+  template:
+    src: ../../templates/root-my.cnf.j2
+    dest: /root/.my.cnf
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Copy tungsten .my.cnf file
+  template:
+    src: ../../templates/tungsten-my.cnf.j2
+    dest: /home/tungsten/.my.cnf
+    owner: tungsten
+    group: tungsten
+    mode: 0600
+
+- name: Restart the MySQL service
+  service:
+    name: mysqld
+    state: restarted

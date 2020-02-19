@@ -1,0 +1,30 @@
+---
+- name: Register cloud guest
+  shell: registercloudguest --force-new
+  become: yes
+
+- name: Update all packages
+  shell: zypper -n --no-gpg-checks update
+  become: yes
+
+- name: Install required packages
+  shell: "zypper -n --no-gpg-checks install {{ item }}"
+  become: yes
+  with_items:
+    - gcc
+    - java-1_8_0-openjdk
+    - perl
+    - rsync
+    - ruby
+    - ruby-devel
+    - tar
+    - zip
+    - make
+
+- name: Install Ruby gems
+  shell: "gem install {{ item }}"
+  become: yes
+  with_items:
+    - io-console
+    - net-ssh
+    - net-scp

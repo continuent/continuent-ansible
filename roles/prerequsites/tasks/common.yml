@@ -1,0 +1,85 @@
+---
+- name: Create mysql group
+  group:
+    name: mysql
+    state: present
+
+- name: Create tungsten group
+  group:
+    name: tungsten
+    state: present
+
+- name: Create the tungsten user
+  user:
+    name: tungsten
+    shell: /bin/bash
+    comment: Tungsten User
+    groups: mysql,tungsten
+
+- name: Add tungsten user to sudoers file
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: "^tungsten.*ALL$"
+    line: "tungsten ALL=(ALL) NOPASSWD: ALL"
+    validate: "visudo -cf %s"
+
+- name: Create tungsten folders
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: tungsten
+    group: tungsten
+    mode: 0700
+  with_items:
+    - /etc/tungsten
+    - /opt/continuent
+    - /opt/continuent/software
+
+- name: Set security limits for the tungsten user
+  copy:
+    src: ../files/limits.conf
+    dest: /etc/security/limits.d/99-tungsten.conf
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Create tungsten ssh folder
+  file:
+    path: /home/tungsten/.ssh
+    state: directory
+    owner: tungsten
+    group: tungsten
+    mode: 0700
+
+- name: Copy the ssh keys and config for tungsten user
+  copy:
+    src: "{{ item.src }}"
+    dest: "/home/tungsten/.ssh/{{ item.dest }}"
+    owner: tungsten
+    group: tungsten
+    mode: "{{ item.mode }}"
+  with_items:
+    - { src: "../files/id_rsa.tungsten", dest: "id_rsa", mode: "0600" }
+    - { src: "../files/id_rsa.tungsten.pub", dest: "id_rsa.pub", mode: "0644" }
+    - { src: "../files/ssh_config", dest: "config", mode: "0644" }
+
+- name: Set ssh authorized key for the tungsten user
+  authorized_key:
+    user: tungsten
+    state: present
+    key: "{{ lookup('file', '../files/id_rsa.tungsten.pub') }}"
+
+- name: Update .bash_profile of the tungsten user
+  blockinfile:
+    dest: /home/tungsten/.bash_profile
+    create: yes
+    owner: tungsten
+    group: tungsten
+    block: |
+      if [ -f "/opt/continuent/share/env.sh" ]; then
+            . "/opt/continuent/share/env.sh"
+      fi
+      if [ -f "/opt/replicator/share/env.sh" ]; then
+            . "/opt/replicator/share/env.sh"
+      fi

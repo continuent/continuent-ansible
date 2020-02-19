@@ -1,0 +1,59 @@
+---
+- name: Install MySQL repository
+  yum:
+    name: "https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm"
+    state: present
+
+- name: Disable MySQL 8.0 repository
+  shell: yum-config-manager --disable mysql80-community
+
+- name: Enable MySQL 5.7 repository
+  shell: yum-config-manager --enable mysql57-community
+
+- name: Install MySQL packages
+  yum:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - mysql-community-server
+      - mysql-community-client
+
+- name: Enable the MySQL service
+  service:
+    name: mysqld
+    state: started
+    enabled: true
+
+- name: Generate MySQL server-id
+  shell: hostname -I | sed -e 's/ \+\([a-z0-9]\+\:\)\+[a-z0-9]\+//' | sed -e 's/ /\n/' | grep -v '^$' | tail -1 | awk -F. '{print $3 * 256 + $4}'
+  register: mysql_server_id
+
+- name: Create /etc/my.cnf
+  template:
+    src: ../../templates/mysql_rhel.cnf.j2
+    dest: /etc/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
+
+- name: Create /etc/init.d/mysql file
+  copy:
+    src: ../../files/mysql
+    dest: /etc/init.d/mysql
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Acquire temporary root password
+  shell: "awk -F': ' '$0 ~ \"temporary password\"{print $2}' /var/log/mysqld.log"
+  register: mysql_root_password_temp
+
+- name: Set new root password from default temporary password
+  shell: "mysql -e \"SET PASSWORD = '{{ passwd_mysql_root }}';\" --connect-expired-password -uroot -p'{{ mysql_root_password_temp.stdout }}' && touch /root/.my.password.changed"
+  args:
+    creates: /root/.my.password.changed
+
+- name: Uninstall MySQL validate password plugin
+  shell: "mysql -e \"UNINSTALL PLUGIN validate_password;\" -uroot -p'{{ passwd_mysql_root }}'"

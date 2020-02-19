@@ -1,0 +1,48 @@
+---
+- name: Install MySQL repository
+  shell: "{{ item }}"
+  become: yes
+  with_items:
+    - "cd /etc/zypp/repos.d/ && sudo wget https://download.opensuse.org/repositories/devel:/gcc/SLE-12/devel:gcc.repo"
+    - "rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-sl15-3.noarch.rpm"
+    - "rpm --import /etc/RPM-GPG-KEY-mysql"
+
+- name: Install MySQL server
+  shell: zypper -n --no-gpg-checks install mysql-community-server
+  become: yes
+
+- name: Enable the MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: Generate MySQL server-id
+  shell: hostname -I | sed -e 's/ \+\([a-z0-9]\+\:\)\+[a-z0-9]\+//' | sed -e 's/ /\n/' | grep -v '^$' | tail -1 | awk -F. '{print $3 * 256 + $4}'
+  register: mysql_server_id
+
+- name: Create /etc/my.cnf
+  template:
+    src: ../../templates/mysql_suse.cnf.j2
+    dest: /etc/my.cnf
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
+
+- name: Create /etc/init.d/mysqld file
+  copy:
+    src: ../../files/mysqld
+    dest: /etc/init.d/mysqld
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Acquire temporary root password
+  shell: 'awk -F'': '' ''$0 ~ "temporary password"{print $2}'' /var/log/mysqld.log'
+  register: mysql_root_password_temp
+
+- name: Set new root password from default temporary password
+  shell: 'mysql -e "SET PASSWORD = ''{{ passwd_mysql_root }}'';" --connect-expired-password -uroot -p''{{ mysql_root_password_temp.stdout }}'' && touch /root/.my.password.changed'
+  args:
+    creates: /root/.my.password.changed
