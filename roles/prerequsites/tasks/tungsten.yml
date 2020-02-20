@@ -9,8 +9,8 @@
 
 - name: Unarchive Tungsten Clustering software
   unarchive:
-    src: "../../../{{ ansible_tungsten_version }}.tar.gz"
+    src: "../../../{{ tungsten_version }}.tar.gz"
     dest: /opt/continuent/software
 
 - name: Install Tungsten Clustering
-  shell: "/opt/continuent/software/{{ ansible_tungsten_version }}/tools/tpm install"
+  shell: "/opt/continuent/software/{{ tungsten_version }}/tools/tpm install"
