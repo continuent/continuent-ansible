@@ -13,9 +13,9 @@ Configuring servers for Tungsten purposes using Ansible. For more informations r
     ```
     $ cat myhosts.txt
 
+    my-centos-host  ansible_user=centos     ansible_ssh_private_key=~/.ssh/id_rsa_centos
     my-ubuntu-host  ansible_user=ubuntu     ansible_ssh_private_key=~/.ssh/id_rsa_ubuntu
-    my-amazon-host  ansible_user=ec2_user   ansible_ssh_private_key=~/.ssh/id_rsa_amazon
-    52.90.35.76     ansible_user=centos     ansible_ssh_private_key=~/.ssh/id_rsa_centos
+    my-amazon-host  ansible_user=ec2-user   ansible_ssh_private_key=~/.ssh/id_rsa_amazon
     ```
 
 3. Replace `roles/prerequsites/files/id_rsa.tungsten` and `roles/prerequsites/files/id_rsa.tungsten.pub` files with valid keys

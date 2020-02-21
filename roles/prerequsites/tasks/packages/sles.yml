@@ -1,4 +1,8 @@
 ---
+- name: Warm up
+  pause:
+    minutes: 1
+
 - name: Register cloud guest
   shell: registercloudguest --force-new
   become: yes

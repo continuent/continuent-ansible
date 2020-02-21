@@ -15,6 +15,7 @@
     state: present
   vars:
     packages:
+      - acl
       - build-essential
       - locales-all
       - openjdk-8-jdk

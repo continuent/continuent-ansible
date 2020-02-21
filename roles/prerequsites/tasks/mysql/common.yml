@@ -45,5 +45,5 @@
 
 - name: Restart the MySQL service
   service:
-    name: mysqld
+    name: mysql
     state: restarted

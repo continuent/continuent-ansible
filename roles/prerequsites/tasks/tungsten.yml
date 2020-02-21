@@ -11,6 +11,10 @@
   unarchive:
     src: "../../../{{ tungsten_version }}.tar.gz"
     dest: /opt/continuent/software
+    owner: tungsten
+    group: tungsten
+    mode: 0770
 
 - name: Install Tungsten Clustering
   shell: "/opt/continuent/software/{{ tungsten_version }}/tools/tpm install"
+  become_user: tungsten
