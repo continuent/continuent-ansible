@@ -43,6 +43,7 @@
 - name: Disable selinux
   shell: setenforce 0
   become: yes
+  ignore_errors: yes
 
 - name: Permanently disable selinux
   lineinfile:
@@ -50,6 +51,7 @@
     state: present
     regexp: '^SELINUX=.*'
     line: 'SELINUX=disabled'
+  ignore_errors: yes
 
 - name: Enable the MySQL service
   service:

@@ -1,6 +1,6 @@
 # continuent-ansible
 
-Configuring servers for Tungsten purposes using Ansible. For more informations read our blog article [Automated server preparation using Ansible](#).
+Configuring servers for Tungsten purposes using Ansible. For more information read our blog article [Automated server preparation using Ansible](#).
 
 ## Usage
 

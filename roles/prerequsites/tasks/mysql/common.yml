@@ -4,8 +4,6 @@
   with_items:
     - ::1
     - 127.0.0.1
-    - localhost
-  ignore_errors: yes
 
 - name: Create the MySQL tungsten user
   shell: "mysql -e \"CREATE USER 'tungsten'@'{{ item }}' IDENTIFIED BY '{{ passwd_mysql_tungsten }}'; GRANT ALL PRIVILEGES ON *.* TO 'tungsten'@'{{ item }}' WITH GRANT OPTION;\" -uroot -p'{{ passwd_mysql_root }}'"
