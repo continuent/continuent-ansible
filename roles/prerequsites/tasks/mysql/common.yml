@@ -1,6 +1,6 @@
 ---
 - name: Ensure root can login into MySQL localhost
-  shell: "mysql -e \"CREATE USER 'root'@'{{ item }}';\" -uroot -p'{{ passwd_mysql_root }}'"
+  shell: "mysql -e \"CREATE USER 'root'@'{{ item }}' IDENTIFIED BY '{{ passwd_mysql_root }}';\" -uroot -p'{{ passwd_mysql_root }}'"
   with_items:
     - ::1
     - 127.0.0.1
@@ -14,12 +14,19 @@
     - 127.0.0.1
     - localhost
     - "%"
+    - "{{ ansible_facts['hostname'] }}"
 
 - name: Create the MySQL app_user
-  shell: "mysql -e \"CREATE USER 'app_user'@'%' IDENTIFIED BY '{{ passwd_mysql_app_user }}'; GRANT ALL PRIVILEGES ON *.* TO 'app_user'@'%';\" -uroot -p'{{ passwd_mysql_root }}'"
+  shell: "mysql -e \"CREATE USER 'app_user'@'{{ item }}' IDENTIFIED BY '{{ passwd_mysql_app_user }}'; GRANT ALL PRIVILEGES ON *.* TO 'app_user'@'{{ item }}';\" -uroot -p'{{ passwd_mysql_root }}'"
+  with_items:
+    - "%"
+    - "{{ ansible_facts['hostname'] }}"
 
 - name: Revoke the SUPER privileges from the MySQL app_user
-  command: "mysql -NBe \"REVOKE SUPER ON *.* FROM app_user@'%'\" -uroot -p'{{ passwd_mysql_root }}'"
+  shell: "mysql -NBe \"REVOKE SUPER ON *.* FROM app_user@'{{ item }}'\" -uroot -p'{{ passwd_mysql_root }}'"
+  with_items:
+    - "%"
+    - "{{ ansible_facts['hostname'] }}"
 
 - name: Adding user mysql to group tungsten
   user:
@@ -44,6 +51,5 @@
     mode: 0600
 
 - name: Restart the MySQL service
-  service:
-    name: mysql
-    state: restarted
+  shell: service mysql restart
+  become: yes

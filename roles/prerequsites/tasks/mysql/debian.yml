@@ -9,12 +9,6 @@
       - mysql-server
       - mysql-client
 
-- name: Enable the MySQL service
-  service:
-    name: mysql
-    state: started
-    enabled: true
-
 - name: Generate MySQL server-id
   shell: hostname -I | sed -e 's/ \+\([a-z0-9]\+\:\)\+[a-z0-9]\+//' | sed -e 's/ /\n/' | grep -v '^$' | tail -1 | awk -F. '{print $3 * 256 + $4}'
   register: mysql_server_id
@@ -35,3 +29,9 @@
     owner: root
     group: root
     mode: 0755
+
+- name: Enable the MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: true

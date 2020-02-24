@@ -15,6 +15,7 @@
   shell: "zypper -n --no-gpg-checks install {{ item }}"
   become: yes
   with_items:
+    - acl
     - gcc
     - java-1_8_0-openjdk
     - perl
