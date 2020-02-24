@@ -40,6 +40,17 @@
     group: root
     mode: 0755
 
+- name: Disable selinux
+  shell: setenforce 0
+  become: yes
+
+- name: Permanently disable selinux
+  lineinfile:
+    dest: /etc/sysconfig/selinux
+    state: present
+    regexp: '^SELINUX=.*'
+    line: 'SELINUX=disabled'
+
 - name: Enable the MySQL service
   service:
     name: mysqld
