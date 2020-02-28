@@ -6,6 +6,7 @@
     - "cd /etc/zypp/repos.d/ && sudo wget https://download.opensuse.org/repositories/devel:/gcc/SLE-12/devel:gcc.repo"
     - "rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-sl15-3.noarch.rpm"
     - "rpm --import /etc/RPM-GPG-KEY-mysql"
+  ignore_errors: yes
 
 - name: Install MySQL server
   shell: zypper -n --no-gpg-checks install mysql-community-server

@@ -70,3 +70,4 @@
 
 - name: Uninstall MySQL validate password plugin
   shell: "mysql -e \"UNINSTALL PLUGIN validate_password;\" -uroot -p'{{ passwd_mysql_root }}'"
+  ignore_errors: yes
