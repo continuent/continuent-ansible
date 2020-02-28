@@ -24,3 +24,8 @@
       - rubygem-net-scp
       - tar
       - zip
+
+- name: Install Percona XtraBackup
+  yum:
+    name: "https://www.percona.com/downloads/Percona-XtraBackup-2.4/Percona-XtraBackup-2.4.16/binary/redhat/7/x86_64/percona-xtrabackup-24-2.4.16-1.el7.x86_64.rpm"
+    state: present

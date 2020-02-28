@@ -27,3 +27,7 @@
     - io-console
     - net-ssh
     - net-scp
+
+- name: Install Percona XtraBackup
+  apt:
+    deb: "https://repo.percona.com/apt/percona-release_latest.bionic_all.deb"
